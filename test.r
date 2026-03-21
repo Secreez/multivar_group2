@@ -56,7 +56,7 @@ dat_analysis <- inner_join(excess_snap, owid_struct, by = "code") |>
 
 nrow(dat_analysis)
 glimpse(dat_analysis)
-install.packages("GGally")
+
 library(ggplot2)
 library(GGally)
 
