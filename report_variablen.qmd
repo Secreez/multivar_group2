@@ -1,0 +1,20 @@
+---
+title: "Datensatz-Präsentation Gruppe 2"
+subtitle: "COVID-19 Mortalität & strukturelle Einflussfaktoren"
+author: "Maximilian Elixhauser"
+date: today
+format:
+  PrettyPDF-pdf:
+    include-in-header:
+      - text: |
+          \usepackage{fvextra}
+          \DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+            breaklines,
+            breaksymbolleft={},
+            commandchars=\\\{\}
+          }
+code-fold: true
+echo: false
+message: false
+warning: false
+---
