@@ -21,5 +21,5 @@ die beiden dann einfach in data/raw packen und report_variablen.qmd ausführen (
 
 **Was ich schon gecheckt hab:**
 - 110 complete cases nach Join (excess mortality + strukturelle Variablen)
-- Variablen die wir verwenden: `excess_mort` (Outcome), `gdp_per_capita`, `median_age`, `life_expectancy`
+- Variablen die wir verwenden: `excess_mort` (Outcome), `gdp_per_capita`, `median_age`
 - Join-Logik: nearest date zu 2023-05-05 für excess mortality, latest row pro Land für strukturelle Variablen (Weil dort die Pandemie aufgehört hat.)
