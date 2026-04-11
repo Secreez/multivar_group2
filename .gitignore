@@ -37,6 +37,7 @@ _site/
 # ---- Positron / RStudio ----
 .Rproj.user/
 
-# ---- Data (kein raw data ins Repo) ----
-*.csv
+# ---- Data ----
 data/raw/
+data/**/*.csv
+!data/dat_analysis.csv
