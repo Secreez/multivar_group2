@@ -1,8 +1,8 @@
 ---
 title: "Datensatz Report - Gruppe 2"
 subtitle: "COVID-19 Übersterblichkeit & strukturelle Einflussfaktoren"
-author: "Emily Panzl & Max Elixhauser"
-date: today
+author: ""
+date: 11.04.2026
 format:
   PrettyPDF-pdf:
     include-in-header:
@@ -31,10 +31,10 @@ Zwei Quellen, beide frei verfügbar unter CC BY 4.0:
 
 - **Excess Mortality** (HMD/WMD via Our World in Data): monatliche Übersterblichkeit
   pro Million, 126 Länder, Jänner 2020 - Dezember 2023.
-  Quelle: https://catalog.ourworldindata.org/garden/excess_mortality/latest/excess_mortality/excess_mortality.csv
+  Quelle: [hier](https://catalog.ourworldindata.org/garden/excess_mortality/latest/excess_mortality/excess_mortality.csv)
 
 - **OWID Compact COVID-19 Dataset**: strukturelle Ländervariablen (BIP, Demographie).
-  Quelle: https://catalog.ourworldindata.org/garden/covid/latest/compact/compact.csv
+  Quelle: [hier](https://catalog.ourworldindata.org/garden/covid/latest/compact/compact.csv)
 
 **Snapshot-Datum:** 2023-05-05 (WHO Ende der Pandemie-Notlage / PHEIC)
 Datensatz geht technisch bis 2026, wir schneiden bei 2023-05-05 ab.
@@ -44,7 +44,7 @@ nearest observation pro Land zu diesem Datum.
 
 **Übersterblichkeit (Excess Mortality):** nicht einfach bestätigte COVID-Tote.
 Formel: *gemeldete Gesamttodesfälle minus erwartete Todesfälle* (Baseline 2015–2019).
-Beispiel: 1.000 Tote pro Monat normal, 1.300 während COVID → Übersterblichkeit = 300.
+Beispiel: 1.000 Tote pro Monat normal, 1.300 während COVID -> Übersterblichkeit = 300.
 Skaliert pro Million für faire Ländervergleiche.
 Negative Werte = weniger Tote als erwartet (z.B. Lockdowns haben Autounfälle reduziert).
 
@@ -60,6 +60,8 @@ Höher = mehr ältere Menschen = mehr COVID-Risiko.
 **Pearson r:** misst lineare Korrelation zwischen zwei Variablen, von -1 bis +1.
 r = +1: perfekter positiver Zusammenhang. r = -1: perfekt negativ. r = 0: kein Zusammenhang.
 Faustregel: unter 0.1 vernachlässigbar, 0.1–0.3 schwach, 0.3–0.5 moderat, über 0.5 stark.
+
+\newpage
 
 ## Variablen
 
@@ -129,7 +131,7 @@ dat_analysis |>
 Massive Variation überall: BIP pro Kopf von **$4.137** bis **$117.747**,
 Medianalter von **21,7** Jahren (Sub-Sahara-Afrika) bis **48,5** Jahre (Japan... o7).
 Und Übersterblichkeit von **`r round(min(dat_analysis$excess_mort))`**
-(manche Länder hatten weniger Tote als erwartet — strenge Lockdowns haben
+(manche Länder hatten weniger Tote als erwartet: strenge Lockdowns haben
 z.B. Verkehrsunfälle reduziert) bis **`r round(max(dat_analysis$excess_mort))`** pro Million.
 
 Das ist ein **`r round(max(dat_analysis$excess_mort) / abs(min(dat_analysis$excess_mort)))`-facher Unterschied**
@@ -144,6 +146,7 @@ dat_analysis |>
   round(2) |>
   knitr::kable(caption = "Pearson Korrelationsmatrix")
 ```
+\newpage
 
 Zwei Dinge fallen sofort auf:
 
@@ -184,6 +187,7 @@ ggplot(dat_analysis, aes(x = median_age, y = excess_mort)) +
   ) +
   theme_minimal(base_size = 12)
 ```
+\newpage
 
 ## Was wir beim Finalen untersuchen wollen
 
