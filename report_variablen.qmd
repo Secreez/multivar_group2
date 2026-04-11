@@ -1,6 +1,6 @@
 ---
-title: "Dataset Report - Group 2"
-subtitle: "COVID-19 Mortality & Structural Predictors"
+title: "Datensatz Report - Gruppe 2"
+subtitle: "COVID-19 Übersterblichkeit & strukturelle Einflussfaktoren"
 author: "Emily Panzl & Max Elixhauser"
 date: today
 format:
@@ -19,121 +19,100 @@ message: false
 warning: false
 ---
 
-## Introduction
+## Was machen wir eigentlich?
 
-This report presents the dataset selected for our multivariate analysis project. 
-We investigate structural country-level predictors of COVID-19 mortality, using 
-cumulative excess mortality as our outcome variable. The central question is: 
-*what structural factors explain variation in COVID-19 mortality across countries?*
+Wir schauen uns an warum manche Länder während COVID viel mehr Tote hatten als andere..
+und ob strukturelle Faktoren wie Wirtschaftsleistung und Demographie das erklären können.
+Klingt einfach, ist es aber nicht ganz. Spoiler ahead.
 
-## Data Sources
+## Datensatz
 
-We use two datasets from Our World in Data (OWID), both licensed under CC BY 4.0:
+Zwei Quellen, beide frei verfügbar unter CC BY 4.0:
 
-- **Excess Mortality** (HMD/WMD via OWID): cumulative excess deaths per million, 
-  monthly, 126 countries, January 2020 - December 2023.  
-  Source: https://catalog.ourworldindata.org/garden/excess_mortality/latest/excess_mortality/excess_mortality.csv
+- **Excess Mortality** (HMD/WMD via Our World in Data): monatliche Übersterblichkeit
+  pro Million, 126 Länder, Jänner 2020 - Dezember 2023.
+  Quelle: https://catalog.ourworldindata.org/garden/excess_mortality/latest/excess_mortality/excess_mortality.csv
 
-- **OWID Compact COVID-19 Dataset**: structural country-level variables (GDP, 
-  demographics, health infrastructure).  
-  Source: https://catalog.ourworldindata.org/garden/covid/latest/compact/compact.csv
+- **OWID Compact COVID-19 Dataset**: strukturelle Ländervariablen (BIP, Demographie).
+  Quelle: https://catalog.ourworldindata.org/garden/covid/latest/compact/compact.csv
 
-## Variables
+**Snapshot-Datum:** 2023-05-05 (WHO Ende der Pandemie-Notlage / PHEIC)
+Datensatz geht technisch bis 2026, wir schneiden bei 2023-05-05 ab.
+nearest observation pro Land zu diesem Datum.
 
-| Variable | Description | Source |
+## WTF ist eigentlich...
+
+**Übersterblichkeit (Excess Mortality):** nicht einfach bestätigte COVID-Tote.
+Formel: *gemeldete Gesamttodesfälle minus erwartete Todesfälle* (Baseline 2015–2019).
+Beispiel: 1.000 Tote pro Monat normal, 1.300 während COVID → Übersterblichkeit = 300.
+Skaliert pro Million für faire Ländervergleiche.
+Negative Werte = weniger Tote als erwartet (z.B. Lockdowns haben Autounfälle reduziert).
+
+**BIP pro Kopf (PPP):** wirtschaftliche Leistung pro Person, kaufkraftbereinigt
+(1$ in Bolivien ≠ 1$ in Deutschland). Höher = reicheres Land.
+Einheit: konstante internationale Dollar (Basisjahr 2017).
+
+**Medianalter:** teilt die Bevölkerung 50/50.
+Japan ~48 Jahre = die Hälfte der Bevölkerung ist älter als 48. (welp.)
+Niger ~15 Jahre = sehr junge Bevölkerung.
+Höher = mehr ältere Menschen = mehr COVID-Risiko.
+
+**Pearson r:** misst lineare Korrelation zwischen zwei Variablen, von -1 bis +1.
+r = +1: perfekter positiver Zusammenhang. r = -1: perfekt negativ. r = 0: kein Zusammenhang.
+Faustregel: unter 0.1 vernachlässigbar, 0.1–0.3 schwach, 0.3–0.5 moderat, über 0.5 stark.
+
+## Variablen
+
+| Variable | Beschreibung | Quelle |
 |---|---|---|
-| `excess_mort` | Cumulative excess deaths per million (snapshot ~2023-05-05) | HMD/WMD via OWID |
-| `gdp_per_capita` | GDP per capita, PPP (constant 2017 int'l $) | World Bank via OWID |
-| `median_age` | Median population age (years) | UN WPP via OWID |
-| `hospital_beds_per_thousand` | Hospital beds per 1,000 people | World Bank via OWID |
+| `excess_mort` | Kumul. Übersterblichkeit pro Million (~2023-05-05) | HMD/WMD via OWID |
+| `gdp_per_capita` | BIP pro Kopf, PPP (konstante 2017 Int.-Dollar) | World Bank via OWID |
+| `median_age` | Medianalter der Bevölkerung (Jahre) | UN WPP via OWID |
 
-## Variable Guide - WTF is a:
-
-**Excess Mortality** is not just confirmed COVID deaths. It measures: 
-*reported all-cause deaths minus expected deaths based on 2015–2019 baseline*. 
-If a country normally has 1,000 deaths/month and had 1,300 during COVID, 
-excess = 300. Scaled per million for fair cross-country comparison.
-
-Negative values mean *fewer* deaths than expected (e.g. strict lockdowns reducing accidents like car crashes).
-
-**GDP per capita (PPP)** is the total economic output per person, adjusted for 
-purchasing power (so $1 in Bolivia ≠ $1 in Germany). Higher = wealthier country (Note: high GDP per capita reflects national output, not necessarily that individual citizens are wealthy as income inequality matters too.)
-Unit: constant 2017 international dollars.
-
-**Median Age** the age that splits a population 50/50. 
-Japan median age ~48 = half the population is older than 48. (welp.)
-Niger median age ~15 = very young population. 
-Higher median age = more elderly people at risk from COVID.
-
-**Hospital Beds per 1,000** is number of inpatient hospital beds available 
-per 1,000 residents. Proxy for healthcare infrastructure capacity. 
-Note: this measures *capacity*, not quality or staffing.
-
-**Pearson r** measures linear correlation between two variables, 
-ranging from -1 to +1. 
-r = +1: perfect positive relationship (both go up together). 
-r = -1: perfect negative (one goes up, other goes down). 
-r = 0: no linear relationship. 
-Rule of thumb: |r| < 0.1 negligible, 0.1–0.3 weak, 0.3–0.5 moderate, > 0.5 strong.
-(We use it here to get a first sense of which variables move together with excess mortality.. before building more complex models in the final project.)
-
-## Data Preparation
+## Datenaufbereitung
 
 ```{r}
-# install.packages(c("readr", "dplyr", "countrycode")) # for the install
+# install.packages(c("readr", "dplyr", "countrycode", "ggplot2"))
 library(readr)
 library(dplyr)
 library(countrycode)
+library(ggplot2)
 
-# 1) Excess Mortality
-excess_catalog <- read_csv("data/excess_mortality.csv", show_col_types = FALSE)
+# 1) Übersterblichkeit
+excess_catalog <- read_csv("data/raw/excess_mortality.csv", show_col_types = FALSE)
 
 excess_snap <- excess_catalog |>
-  # drop rows without excess mortality data
   filter(!is.na(cum_excess_per_million_proj_all_ages)) |>
-  # countrycode converts country names to ISO3 codes (e.g. "Albania" -> "ALB")
-  # custom_match handles edge cases that countrycode can't resolve automatically
   mutate(code = countrycode(entity, "country.name", "iso3c",
     custom_match = c("Kosovo" = "XKX"))) |>
-  # drop rows where ISO mapping failed (e.g. regional aggregates)
   filter(!is.na(code)) |>
-  # per country: pick the observation closest to 2023-05-05 (WHO end-of-emergency)
   group_by(code) |>
   slice_min(abs(date - as.Date("2023-05-05")), with_ties = FALSE) |>
   ungroup() |>
   select(code, excess_mort = cum_excess_per_million_proj_all_ages)
 
-# 2) Structural Variables (OWID compact)
-owid_struct <- read_csv("data/owid-covid-data.csv", show_col_types = FALSE) |>
-  # OWID compact contains regional aggregates prefixed with "OWID_" - drop those
+# 2) Strukturelle Variablen
+owid_struct <- read_csv("data/raw/owid-covid-data.csv", show_col_types = FALSE) |>
   filter(!startsWith(code, "OWID_")) |>
-  # structural variables (GDP, age etc.) repeat on every row per country
-  # just take the latest row to get one row per country
   group_by(code) |>
   slice_max(date, with_ties = FALSE) |>
   ungroup() |>
-  select(code, gdp_per_capita, median_age,
-         hospital_beds_per_thousand, continent)
+  select(code, gdp_per_capita, median_age, continent)
 
-# 3) Join & export
-# inner_join: only keep countries present in both datasets
-# complete.cases: drop any remaining rows with NAs across all variables
+# 3) Join & Export
 dat_analysis <- inner_join(excess_snap, owid_struct, by = "code") |>
   filter(complete.cases(pick(everything())))
 
-# export for EDA
 write_csv(dat_analysis, "data/dat_analysis.csv")
 ```
 
-**n = `r nrow(dat_analysis)` countries** with complete data across all variables.
+**n = `r nrow(dat_analysis)` Länder** mit vollständigen Daten.
 
+## Was uns der Datensatz schon sagt
 
-## What the Data Already Tells Us
 ```{r}
-# quick summary
-# descriptive summary all variables
 dat_analysis |>
-  select(excess_mort, gdp_per_capita, median_age, hospital_beds_per_thousand) |>
+  select(excess_mort, gdp_per_capita, median_age) |>
   summarise(across(everything(), list(
     mean = ~round(mean(.), 1),
     median = ~round(median(.), 1),
@@ -144,72 +123,89 @@ dat_analysis |>
     names_to = c("variable", "stat"),
     names_sep = "_(?=[^_]+$)") |>
   tidyr::pivot_wider(names_from = stat, values_from = value) |>
-  knitr::kable(caption = "Descriptive summary of all variables (n = 99 countries)")
+  knitr::kable(caption = "Deskriptive Übersicht aller Variablen (n = 110 Länder)")
 ```
 
+Massive Variation überall: BIP pro Kopf von **$4.137** bis **$117.747**,
+Medianalter von **21,7** Jahren (Sub-Sahara-Afrika) bis **48,5** Jahre (Japan... o7).
+Und Übersterblichkeit von **`r round(min(dat_analysis$excess_mort))`**
+(manche Länder hatten weniger Tote als erwartet — strenge Lockdowns haben
+z.B. Verkehrsunfälle reduziert) bis **`r round(max(dat_analysis$excess_mort))`** pro Million.
 
-Table: Descriptive summary of all variables (n = 99 countries)
+Das ist ein **`r round(max(dat_analysis$excess_mort) / abs(min(dat_analysis$excess_mort)))`-facher Unterschied**
+zwischen bestem und schlechtestem Outcome. Warum eigentlich? Can I haz cheezburgers?
 
-|variable                   |    mean|  median|    min|      max|
-|:--------------------------|-------:|-------:|------:|--------:|
-|excess_mort                |  3018.5|  2616.5| -654.3|   9767.1|
-|gdp_per_capita             | 33034.6| 27450.4| 4137.3| 117747.0|
-|median_age                 |    35.5|    35.8|   21.7|     48.5|
-|hospital_beds_per_thousand |     3.7|     3.0|    0.4|     13.0|
+Ein erster Blick auf die Korrelationen:
 
-Massive variation across all variables as GDP per capita from **$4,137** to **$117,747**, 
-median age from **21.7** (sub-Saharan Africa vibes) to **48.5** years (Japan... o7), 
-hospital beds from **0.4** to **13.0** per 1,000. And excess mortality from **`r round(min(dat_analysis$excess_mort))`** 
-(some countries had *fewer* deaths than expected.. so strict lockdowns cutting car crashes etc.) 
-to **`r round(max(dat_analysis$excess_mort))`** deaths per million.
-
-That's a **`r round(max(dat_analysis$excess_mort) / abs(min(dat_analysis$excess_mort)))`$\times$ difference** between best and worst outcomes.. which begs the question: why though? Can I haz cheezburgers?
-
-A first look at the predictors gives us a hint:
 ```{r}
-# correlation with excess mortality
 dat_analysis |>
-  select(excess_mort, gdp_per_capita, median_age, hospital_beds_per_thousand) |>
+  select(excess_mort, gdp_per_capita, median_age) |>
   cor(use = "complete.obs", method = "pearson") |>
   round(2) |>
-  knitr::kable(caption = "Pearson correlation matrix")
+  knitr::kable(caption = "Pearson Korrelationsmatrix")
 ```
 
-Table: Pearson correlation matrix
+Zwei Dinge fallen sofort auf:
 
-|                           | excess_mort| gdp_per_capita| median_age| hospital_beds_per_thousand|
-|:--------------------------|-----------:|--------------:|----------:|--------------------------:|
-|excess_mort                |        1.00|          -0.28|       0.27|                       0.21|
-|gdp_per_capita             |       -0.28|           1.00|       0.45|                       0.10|
-|median_age                 |        0.27|           0.45|       1.00|                       0.59|
-|hospital_beds_per_thousand |        0.21|           0.10|       0.59|                       1.00|
+- **BIP** korreliert *negativ* mit Übersterblichkeit (r = -0,25): reichere Länder
+  hatten im Schnitt weniger Übersterblichkeit.
+- **Medianalter** korreliert *positiv* (r = 0,28): ältere Bevölkerungen wurden härter getroffen.
 
-Three things stand out already:
+Beide Effekte sind moderat.. was darauf hindeutet dass da noch mehr dahintersteckt.
+Genau das wollen wir beim Finalen genauer anschauen.
 
-- **GDP** is *negatively* correlated with excess mortality (r = -0.28): richer countries 
-  had fewer excess deaths on average.
-- **Median age** is *positively* correlated (r = 0.27): older populations were hit harder.
-- **Hospital beds** is *positively* correlated (r = 0.21): counterintuitive at first glance, 
-  but notice that hospital beds and median age are strongly correlated with each other (r = 0.59). 
-  Countries with older populations tend to have built more hospital capacity over time...
-  so beds are partly picking up the age effect. Classic suppression. :>
+## EDA
 
-## Exploratory Data Analysis
-
-```{python}
-import pandas as pd
-
-dat = pd.read_csv("data/dat_analysis.csv")
-dat.describe()
+```{r}
+ggplot(dat_analysis, aes(x = gdp_per_capita, y = excess_mort)) +
+  geom_point(alpha = 0.7, size = 2.5, color = "#009E73") +
+  geom_smooth(method = "lm", se = FALSE, color = "grey30", linewidth = 0.8) +
+  scale_x_log10(labels = scales::comma) +
+  labs(
+    title = "BIP pro Kopf vs. Übersterblichkeit",
+    subtitle = "Log-Skala — 110 Länder",
+    x = "BIP pro Kopf, PPP (Log-Skala)",
+    y = "Kumul. Übersterblichkeit pro Million",
+    caption = "Quelle: OWID / World Bank / HMD / WMD"
+  ) +
+  theme_minimal(base_size = 12)
 ```
 
-## Potential Research Questions
+```{r}
+ggplot(dat_analysis, aes(x = median_age, y = excess_mort)) +
+  geom_point(alpha = 0.7, size = 2.5, color = "#E69F00") +
+  geom_smooth(method = "lm", se = FALSE, color = "grey30", linewidth = 0.8) +
+  labs(
+    title = "Medianalter vs. Übersterblichkeit",
+    subtitle = "110 Länder",
+    x = "Medianalter (Jahre)",
+    y = "Kumul. Übersterblichkeit pro Million",
+    caption = "Quelle: OWID / UN WPP / HMD / WMD"
+  ) +
+  theme_minimal(base_size = 12)
+```
 
-For the final project, we intend to investigate the following (subject to change after the April 16 pitch):
+## Was wir beim Finalen untersuchen wollen
 
-...
+*(kann sich nach der April-16-Präsentation noch ändern)*
 
-## References
+**Übergeordnete Fragestellung:**
+Welche strukturellen Länderfaktoren erklären die Variation in COVID-19 Übersterblichkeit?
 
-- Human Mortality Database (2024); World Mortality Dataset (2024); Karlinsky & Kobak (2021) – processed by Our World in Data. CC BY 4.0.
+Konkret interessieren uns zwei Sub-Fragen:
+
+1. Schützt wirtschaftliche Stärke (BIP pro Kopf) vor COVID-Mortalität und wenn ja, warum nicht immer?
+2. Welche Rolle spielt das Bevölkerungsalter dabei?
+
+Dafür werden wir voraussichtlich folgende Methoden einsetzen
+(je nachdem was der Kurs bis dahin abdeckt):
+
+- **OLS Regression:** Übersterblichkeit als Outcome, BIP und Medianalter als Predictors
+- **Mediansplit Subgruppenanalyse:** Korrelationen getrennt nach Altersgruppen
+- **Interaktionsterm:** moderiert Alter den Effekt von BIP auf Mortalität?
+
+## Quellen
+
+- Human Mortality Database (2024); World Mortality Dataset (2024); Karlinsky & Kobak (2021)
+  — verarbeitet von Our World in Data. CC BY 4.0.
 - Our World in Data COVID-19 Compact Dataset. CC BY 4.0.
