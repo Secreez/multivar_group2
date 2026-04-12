@@ -165,13 +165,16 @@ ggplot(dat_analysis, aes(x = gdp_per_capita, y = excess_mort)) +
   geom_smooth(method = "lm", se = FALSE, color = "grey30", linewidth = 0.8) +
   scale_x_log10(labels = scales::comma) +
   labs(
-    title = "BIP pro Kopf vs. Übersterblichkeit",
-    subtitle = "Log-Skala — 110 Länder",
-    x = "BIP pro Kopf, PPP (Log-Skala)",
-    y = "Kumul. Übersterblichkeit pro Million",
-    caption = "Quelle: OWID / World Bank / HMD / WMD"
+    title = "GDP per Capita vs. Excess Mortality",
+    subtitle = "Log-Scale — 110 Countries",
+    x = "GDP per Capita, PPP (Log-Scale)",
+    y = "Cumul. Excess Mortality per Million",
+    caption = "Source: OWID / World Bank / HMD / WMD"
   ) +
   theme_minimal(base_size = 12)
+
+ggsave("output/gdp_vs_excess_mort.png", 
+       width = 6, height = 5, dpi = 300)
 ```
 
 ```{r}
