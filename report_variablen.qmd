@@ -82,6 +82,7 @@ library(ggplot2)
 
 # 1) Übersterblichkeit
 excess_catalog <- read_csv("data/raw/excess_mortality.csv", show_col_types = FALSE)
+owid_struct <- read_csv("data/raw/owid-covid-data.csv", show_col_types = FALSE)
 
 excess_snap <- excess_catalog |>
   filter(!is.na(cum_excess_per_million_proj_all_ages)) |>
