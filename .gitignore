@@ -41,3 +41,4 @@ _site/
 data/raw/
 data/**/*.csv
 !data/dat_analysis.csv
+.positai

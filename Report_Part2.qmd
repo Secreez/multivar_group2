@@ -1,0 +1,163 @@
+---
+title: "Datensatz Report - Gruppe 2 (Teil 2)"
+subtitle: "COVID-19 Übersterblichkeit & strukturelle Einflussfaktoren — Analyseteil"
+author: "Maximilian Elixhauser, Emily Panzl, Florian Nadegger, Theresa Wein, Anna Katrin Pillar"
+date: today
+format:
+  PrettyPDF-pdf:
+    include-in-header:
+      - text: |
+          \usepackage{fvextra}
+          \DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+            breaklines,
+            breaksymbolleft={},
+            commandchars=\\\{\}
+          }
+echo: false
+message: false
+warning: false
+---
+
+```{r}
+#| label: setup
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(tidyr)
+library(broom)
+```
+
+```{r}
+#| label: load-data
+dat <- read_csv("data/dat_analysis.csv", show_col_types = FALSE)
+```
+
+## Fragestellung (Recap)
+
+Zwei übergeordnete Fragen leiten die Analyse:
+
+1. Schützt wirtschaftliche Stärke (BIP pro Kopf) vor COVID-Übersterblichkeit — und wenn ja, warum nicht immer?
+
+2. Welche Rolle spielt das Medianalter, und moderiert es den Effekt des BIP?
+
+**n = `r nrow(dat)` Länder** mit vollständigen Daten (Stand: 2023-05-05).
+
+\newpage
+
+## Deskriptive Übersicht
+
+```{r}
+#| label: descriptives
+dat |>
+  select(excess_mort, gdp_per_capita, median_age) |>
+  summarise(across(everything(), list(
+    Mean   = ~round(mean(.), 1),
+    Median = ~round(median(.), 1),
+    SD     = ~round(sd(.), 1),
+    Min    = ~round(min(.), 1),
+    Max    = ~round(max(.), 1)
+  ))) |>
+  pivot_longer(everything(),
+    names_to = c("Variable", "Stat"),
+    names_sep = "_(?=[^_]+$)") |>
+  pivot_wider(names_from = Stat, values_from = value) |>
+  kable(caption = "Deskriptive Statistik (n = 110 Länder)")
+```
+
+```{r}
+#| label: corr-matrix
+dat |>
+  select(excess_mort, gdp_per_capita, median_age) |>
+  cor(use = "complete.obs", method = "pearson") |>
+  round(2) |>
+  kable(caption = "Pearson Korrelationsmatrix")
+```
+
+\newpage
+
+OLS Regression
+
+### Modell 1: BIP allein
+
+```{r}
+#| label: model1
+m1 <- lm(excess_mort ~ log(gdp_per_capita), data = dat)
+tidy(m1) |>
+  mutate(across(where(is.numeric), ~round(., 4))) |>
+  kable(caption = "Modell 1: Übersterblichkeit ~ log(BIP pro Kopf)")
+glance(m1) |>
+  select(r.squared, adj.r.squared, sigma, p.value) |>
+  mutate(across(everything(), ~round(., 4))) |>
+  kable(caption = "Modell 1: Modellgüte")
+```
+
+### Modell 2: Medianalter allein
+
+...
+
+### Modell 3: BIP + Medianalter (multivariat)
+
+...
+
+**Interpretation:**
+
+<!-- key: does r² increase from M1/M2 to M3? what happens to the GDP coefficient when age is controlled for? -->
+
+\newpage
+
+### Modell 4: Mit Interaktionsterm (BIP × Medianalter)
+
+...
+
+**Interpretation:**
+
+<!-- is the interaction term significant? does it improve fit? -->
+
+\newpage
+
+## Modellvergleich
+
+...
+
+\newpage
+
+## Mediansplit Subgruppenanalyse
+
+Wir teilen die Länder am Medianalter-Median in zwei Gruppen: **junge** und **alte** Bevölkerungen. Dann berechnen wir die Korrelation zwischen BIP und Übersterblichkeit getrennt für jede Gruppe.
+
+...
+
+**Interpretation:**
+
+<!-- does the GDP-mortality correlation differ between young and old populations? This is the key finding for your presentation -->
+
+\newpage
+
+## Visualisierungen
+
+...
+
+\newpage
+
+## Residualdiagnostik (Modell 3)
+
+...
+
+**Interpretation:**
+
+<!-- are residuals randomly scattered? any pattern suggesting model misspecification? -->
+
+\newpage
+
+## Kontinente-Übersicht
+
+...
+
+## Schlussfolgerung
+
+...
+
+## Limtation
+
+## Literature
