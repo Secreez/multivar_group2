@@ -92,6 +92,8 @@ glance(m1) |>
   kable(caption = "Modell 1: Modellgüte")
 ```
 
+key narrative hook: wealth alone doesn't explain COVID mortality at all..
+
 ### Modell 2: Medianalter allein
 
 ...
