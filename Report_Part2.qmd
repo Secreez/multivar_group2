@@ -92,7 +92,7 @@ glance(m1) |>
   kable(caption = "Modell 1: Modellgüte")
 ```
 
-key narrative hook: wealth alone doesn't explain COVID mortality at all..
+key narrative hook in this case: wealth alone doesn't explain COVID mortality at all..
 
 ### Modell 2: Medianalter allein
 
@@ -132,7 +132,7 @@ Wir teilen die Länder am Medianalter-Median in zwei Gruppen: **junge** und **al
 
 **Interpretation:**
 
-<!-- does the GDP-mortality correlation differ between young and old populations? This is the key finding for your presentation -->
+<!-- does the GDP-mortality correlation differ between young and old populations? This is the key finding for our presentation -->
 
 \newpage
 
@@ -163,3 +163,5 @@ Wir teilen die Länder am Medianalter-Median in zwei Gruppen: **junge** und **al
 ## Limtation
 
 ## Literature
+
+<!-- (will be only a few really. Doesnt matter anyway.) -->
