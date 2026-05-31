@@ -45,6 +45,7 @@ Zwei übergeordnete Fragen leiten die Analyse:
 
 \newpage
 
+
 ## Deskriptive Übersicht
 
 ```{r}
@@ -65,6 +66,11 @@ dat |>
   kable(caption = "Deskriptive Statistik (n = 110 Länder)")
 ```
 
+Massive Streuung überall -> die Standardabweichung der Übersterblichkeit 
+(SD = 2.106) ist fast so groß wie der Mittelwert (2.949). Das heißt: 
+die Unterschiede zwischen Ländern sind riesig, und ein einfacher Durchschnitt 
+erzählt hier nicht viel. Genau das macht multivariate Analyse notwendig in dem Fall.
+
 ```{r}
 #| label: corr-matrix
 dat |>
@@ -74,9 +80,20 @@ dat |>
   kable(caption = "Pearson Korrelationsmatrix")
 ```
 
+Zwei Dinge fallen sofort auf: BIP korreliert negativ mit Übersterblichkeit 
+(r = -0.25).. Bedeutet: reichere Länder hatten im Schnitt weniger Tote. Medianalter 
+korreliert positiv (r = 0.28) -> ältere Bevölkerungen wurden härter getroffen. 
+
+Aber: BIP und Medianalter korrelieren auch stark miteinander (r = 0.50). 
+Reiche Länder haben tendenziell ältere Bevölkerungen. Das ist das Problem -> 
+und genau deshalb brauchen wir multivariate Regression statt einfacher Korrelation.
+
 \newpage
 
-OLS Regression
+## OLS Regression
+
+Wir bauen die Modelle schrittweise auf um zu sehen was die einzelnen Prädiktoren 
+beitragen.. und was passiert wenn man sie kombiniert.
 
 ### Modell 1: BIP allein
 
@@ -92,29 +109,108 @@ glance(m1) |>
   kable(caption = "Modell 1: Modellgüte")
 ```
 
-key narrative hook in this case: wealth alone doesn't explain COVID mortality at all..
+
+
+$r^2 = 0.016$, $p = 0.190$ -> BIP allein erklärt praktisch nichts und ist
+nicht einmal signifikant. 
+
+Kurze Erinnerung: ein Ergebnis generell gilt als statistisch
+signifikant wenn $p < 0.05$ -> das heißt, die Wahrscheinlichkeit dass wir
+diesen Effekt rein zufällig sehen würden (wenn es ihn gar nicht gibt) ist
+unter 5%. Mit $p = 0.190$ können wir den BIP-Effekt nicht von Zufall
+unterscheiden. 
+
+Das ist der erste Widerspruch: reichere Länder sollten
+eigentlich besser dastehen, aber der Effekt ist im einfachen Modell
+unsichtbar. Spoiler: liegt am Medianalter.
 
 ### Modell 2: Medianalter allein
 
-...
+```{r}
+#| label: model2
+m2 <- lm(excess_mort ~ median_age, data = dat)
+tidy(m2) |>
+  mutate(across(where(is.numeric), ~round(., 4))) |>
+  kable(caption = "Modell 2: Übersterblichkeit ~ Medianalter")
+glance(m2) |>
+  select(r.squared, adj.r.squared, sigma, p.value) |>
+  mutate(across(everything(), ~round(., 4))) |>
+  kable(caption = "Modell 2: Modellgüte")
+```
+
+$r^2 = 0.079$, $p = 0.003$ -> Medianalter ist signifikant ($p < 0.05$,
+hier sogar $p < 0.01$): die Wahrscheinlichkeit diesen Effekt zufällig
+zu sehen ist unter 0.3%. Pro zusätzlichem Lebensjahr im Medianalter
+steigt die Übersterblichkeit um ~84 pro Million. 
+
+Ältere Bevölkerungen
+wurden deutlich härter getroffen.. naja das überrascht wenig, deckt sich mit
+der Literatur.
 
 ### Modell 3: BIP + Medianalter (multivariat)
 
-...
+```{r}
+#| label: model3
+m3 <- lm(excess_mort ~ log(gdp_per_capita) + median_age, data = dat)
+tidy(m3) |>
+  mutate(across(where(is.numeric), ~round(., 4))) |>
+  kable(caption = "Modell 3: Übersterblichkeit ~ log(BIP) + Medianalter")
+glance(m3) |>
+  select(r.squared, adj.r.squared, sigma, p.value) |>
+  mutate(across(everything(), ~round(., 4))) |>
+  kable(caption = "Modell 3: Modellgüte")
+```
 
-**Interpretation:**
 
-<!-- key: does r² increase from M1/M2 to M3? what happens to the GDP coefficient when age is controlled for? -->
+Hier passiert das Interessante. Um die Fragen aus der Präsi direkt zu beantworten:
+
+**Steigt $r^2$ von M1/M2 zu M3?** Ja, deutlich — von 0.016 (M1) bzw. 0.079 (M2) 
+auf 0.259 in M3. Das Modell erklärt jetzt dreimal so viel Varianz wie M2 allein. 
+Varianz bedeutet hier einfach: wie unterschiedlich die Übersterblichkeit zwischen 
+den 110 Ländern ist; und unser Modell erklärt jetzt 26% davon, der Rest bleibt 
+durch andere Faktoren (Gesundheitssystem, Politik, Zufall..) ungeklärt. (LIMITATION!)
+
+**Was passiert mit dem BIP-Koeffizienten wenn man Alter kontrolliert?** 
+Er explodiert förmlich -> von nicht-signifikant ($p = 0.190$) in M1 zu hochsignifikant 
+($p < 0.001$, $b = -1.624$) in M3. 
+
+Ein verdoppeltes BIP pro Kopf ist mit ~1.124 weniger Toten pro Million assoziiert, sobald das Alter kontrolliert wird. Der Koeffizient war in M1 unsichtbar weil BIP und Alter so stark korrelieren (r = 0.50) das Alter hat den Schutzeffekt des Reichtums statistisch maskiert. Reichere Länder hatten tatsächlich deutlich weniger Übersterblichkeit.. aber nur wenn man das Medianalter kontrolliert.
 
 \newpage
 
 ### Modell 4: Mit Interaktionsterm (BIP × Medianalter)
 
-...
+```{r}
+#| label: model4
+m4 <- lm(excess_mort ~ log(gdp_per_capita) * median_age, data = dat)
+tidy(m4) |>
+  mutate(across(where(is.numeric), ~round(., 4))) |>
+  kable(caption = "Modell 4: Mit Interaktionsterm log(BIP) × Medianalter")
+glance(m4) |>
+  select(r.squared, adj.r.squared, sigma, p.value) |>
+  mutate(across(everything(), ~round(., 4))) |>
+  kable(caption = "Modell 4: Modellgüte")
+```
 
 **Interpretation:**
 
 <!-- is the interaction term significant? does it improve fit? -->
+
+$r^2$ steigt nochmal auf 0.303 -> ein weiterer Schritt von M3. Der 
+Interaktionsterm selbst ($b = -96.03$, $p = 0.011$) ist signifikant, 
+was bedeutet: der Schutzeffekt von BIP ist nicht für alle Länder gleich 
+groß.. er hängt vom Medianalter ab. Ein Interaktionsterm bedeutet einfach: 
+"wie stark wirkt Prädiktor A, hängt davon ab wie groß Prädiktor B ist."
+
+Konkret: in Ländern mit jüngerer Bevölkerung schützt hohes BIP stärker 
+vor Übersterblichkeit. In Ländern mit sehr alter Bevölkerung wird dieser 
+Schutzeffekt abgeschwächt da die Vulnerabilität durch das Alter "frisst" 
+den Vorteil des Reichtums teilweise auf. Das ist die quantitative Bestätigung 
+der Frage aus unserer Präsentation: **does being a rich country actually save lives, or does the fact that rich countries are older cancel out the benefits?**
+
+Antwort laut M4: teilweise ja -> der Schutz durch Reichtum existiert, 
+aber er wird mit steigendem Medianalter systematisch schwächer
+
 
 \newpage
 
@@ -136,7 +232,7 @@ Wir teilen die Länder am Medianalter-Median in zwei Gruppen: **junge** und **al
 
 \newpage
 
-## Visualisierungen
+## Visualisierungen für die Präsi
 
 ...
 
@@ -161,6 +257,11 @@ Wir teilen die Länder am Medianalter-Median in zwei Gruppen: **junge** und **al
 ...
 
 ## Limtation
+
+- Die Stichprobe von 110 Ländern ist nicht global repräsentativ -> Länder mit vollständigen Daten tendieren zu höherem Einkommensniveau, Afrika bspw. ist unterrepräsentiert.
+- BIP pro Kopf ist ein Durchschnittswert und bildet innerstaatliche Ungleichheit nicht ab.
+- Übersterblichkeit hängt von der Qualität der Meldesysteme ab -> auch hier Bias zugunsten reicherer Länder.
+- Kausalaussagen sind auf Basis von Querschnittsdaten nicht möglich.
 
 ## Literature
 
