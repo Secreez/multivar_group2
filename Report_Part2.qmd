@@ -167,14 +167,17 @@ Hier passiert das Interessante. Um die Fragen aus der Präsi direkt zu beantwort
 **Steigt $r^2$ von M1/M2 zu M3?** Ja, deutlich — von 0.016 (M1) bzw. 0.079 (M2) 
 auf 0.259 in M3. Das Modell erklärt jetzt dreimal so viel Varianz wie M2 allein. 
 Varianz bedeutet hier einfach: wie unterschiedlich die Übersterblichkeit zwischen 
-den 110 Ländern ist; und unser Modell erklärt jetzt 26% davon, der Rest bleibt 
-durch andere Faktoren (Gesundheitssystem, Politik, Zufall..) ungeklärt. (LIMITATION!)
+den 110 Ländern ist — und unser Modell erklärt jetzt 26% davon, der Rest bleibt 
+durch andere Faktoren (Gesundheitssystem, Politik, Zufall..) ungeklärt.
 
-**Was passiert mit dem BIP-Koeffizienten wenn man Alter kontrolliert?** 
-Er explodiert förmlich -> von nicht-signifikant ($p = 0.190$) in M1 zu hochsignifikant 
-($p < 0.001$, $b = -1.624$) in M3. 
-
-Ein verdoppeltes BIP pro Kopf ist mit ~1.124 weniger Toten pro Million assoziiert, sobald das Alter kontrolliert wird. Der Koeffizient war in M1 unsichtbar weil BIP und Alter so stark korrelieren (r = 0.50) das Alter hat den Schutzeffekt des Reichtums statistisch maskiert. Reichere Länder hatten tatsächlich deutlich weniger Übersterblichkeit.. aber nur wenn man das Medianalter kontrolliert.
+**Was passiert mit dem BIP-Koeffizienten wenn man Alter kontrolliert?** Er 
+explodiert förmlich — von nicht-signifikant ($p = 0.190$) in M1 zu hochsignifikant 
+($p < 0.001$, $b = -1.624$) in M3. Ein verdoppeltes BIP pro Kopf ist mit ~1.124 
+weniger Toten pro Million assoziiert, sobald das Alter kontrolliert wird. Der 
+Koeffizient war in M1 unsichtbar weil BIP und Alter so stark korrelieren (r = 0.50) 
+-> das Alter hat den Schutzeffekt des Reichtums statistisch maskiert. Reichere 
+Länder hatten tatsächlich deutlich weniger Übersterblichkeit.. aber nur wenn man 
+das Medianalter kontrolliert.
 
 \newpage
 
@@ -194,8 +197,6 @@ glance(m4) |>
 
 **Interpretation:**
 
-<!-- is the interaction term significant? does it improve fit? -->
-
 $r^2$ steigt nochmal auf 0.303 -> ein weiterer Schritt von M3. Der 
 Interaktionsterm selbst ($b = -96.03$, $p = 0.011$) ist signifikant, 
 was bedeutet: der Schutzeffekt von BIP ist nicht für alle Länder gleich 
@@ -204,19 +205,41 @@ groß.. er hängt vom Medianalter ab. Ein Interaktionsterm bedeutet einfach:
 
 Konkret: in Ländern mit jüngerer Bevölkerung schützt hohes BIP stärker 
 vor Übersterblichkeit. In Ländern mit sehr alter Bevölkerung wird dieser 
-Schutzeffekt abgeschwächt da die Vulnerabilität durch das Alter "frisst" 
-den Vorteil des Reichtums teilweise auf. Das ist die quantitative Bestätigung 
-der Frage aus unserer Präsentation: **does being a rich country actually save lives, or does the fact that rich countries are older cancel out the benefits?**
+Schutzeffekt abgeschwächt weil die Vulnerabilität durch das Alter 
+den Vorteil des Reichtums teilweise auffrisst. 
+Das ist die quantitative Bestätigung der Frage aus unserer Präsi: 
+
+**does being a rich country actually save lives, or does the fact that rich countries are older cancel out the benefits?**
 
 Antwort laut M4: teilweise ja -> der Schutz durch Reichtum existiert, 
-aber er wird mit steigendem Medianalter systematisch schwächer
+aber er wird mit steigendem Medianalter systematisch schwächer.
 
 
 \newpage
 
 ## Modellvergleich
 
-...
+```{r}
+#| label: model-comparison
+tibble(
+  Modell = c("M1: log(BIP)", "M2: Medianalter", 
+             "M3: BIP + Alter", "M4: BIP × Alter (Interaktion)"),
+  R2           = c(glance(m1)$r.squared, glance(m2)$r.squared,
+                   glance(m3)$r.squared, glance(m4)$r.squared),
+  Adj_R2       = c(glance(m1)$adj.r.squared, glance(m2)$adj.r.squared,
+                   glance(m3)$adj.r.squared, glance(m4)$adj.r.squared),
+  p_value      = c(glance(m1)$p.value, glance(m2)$p.value,
+                   glance(m3)$p.value, glance(m4)$p.value)
+) |>
+  mutate(across(where(is.numeric), ~round(., 4))) |>
+  kable(caption = "Modellvergleich: R², Adj. R², p-Wert")
+```
+
+Der Vergleich zeigt die schrittweise Verbesserung klar:
+M1 und M2 allein erklären wenig (unter 8%), aber zusammen in M3 springt 
+$r^2$ auf 26% — und der Interaktionsterm in M4 bringt nochmal einen 
+weiteren Schritt auf 30%. Adj. $r^2$ bestraft unnötige Komplexität, 
+also ist der Anstieg von M3 auf M4 auch nach Adjustierung real.
 
 \newpage
 
@@ -224,45 +247,241 @@ aber er wird mit steigendem Medianalter systematisch schwächer
 
 Wir teilen die Länder am Medianalter-Median in zwei Gruppen: **junge** und **alte** Bevölkerungen. Dann berechnen wir die Korrelation zwischen BIP und Übersterblichkeit getrennt für jede Gruppe.
 
-...
+```{r}
+#| label: mediansplit
+age_median_cut <- median(dat$median_age, na.rm = TRUE)
+
+dat_split <- dat |>
+  mutate(age_group = if_else(median_age >= age_median_cut, 
+                              "Ältere Bevölkerung", 
+                              "Jüngere Bevölkerung"))
+
+dat_split |>
+  group_by(age_group) |>
+  summarise(
+    n = n(),
+    r_gdp_excess = round(cor(log(gdp_per_capita), excess_mort, 
+                              use = "complete.obs"), 3),
+    mean_excess  = round(mean(excess_mort), 0),
+    mean_gdp     = round(mean(gdp_per_capita), 0),
+    .groups = "drop"
+  ) |>
+  kable(caption = paste0("Subgruppenkorrelationen (Mediansplit bei Medianalter = ",
+                          round(age_median_cut, 1), " Jahren)"),
+        col.names = c("Altersgruppe", "n", "r (log BIP ~ Übersterblichkeit)",
+                      "Ø Übersterblichkeit", "Ø BIP pro Kopf"))
+```
+
 
 **Interpretation:**
 
-<!-- does the GDP-mortality correlation differ between young and old populations? This is the key finding for our presentation -->
+Das ist eigentlich der markanteste Befund des ganzen Reports. Der Korrelationsunterschied 
+zwischen den zwei Gruppen ist enorm:
 
-\newpage
+- **Jüngere Bevölkerungen** (Medianalter < 35,9 Jahre): r = -0.157 — BIP 
+  und Übersterblichkeit hängen kaum zusammen. Ob ein Land reich oder arm ist 
+  macht für junge Bevölkerungen statistisch wenig Unterschied.
+- **Ältere Bevölkerungen** (Medianalter ≥ 35,9 Jahre): r = -0.539 — starke 
+  negative Korrelation. In Ländern mit älteren Bevölkerungen schützt hohes 
+  BIP deutlich stärker vor Übersterblichkeit.
 
-## Visualisierungen für die Präsi
-
-...
+Das ergibt intuitiv Sinn: reichere Länder haben bessere Intensivstationen, 
+schnelleren Impfzugang und stärkere Gesundheitssysteme — aber das macht den 
+größten Unterschied genau dann, wenn die Bevölkerung vulnerabler ist. 
+Für junge Bevölkerungen war COVID schlicht weniger tödlich, egal wie reich 
+das Land ist — da gibt es wenig zu "retten". Der Schutzeffekt von Reichtum 
+entfaltet sich also primär dort, wo er am meisten gebraucht wird.
 
 \newpage
 
 ## Residualdiagnostik (Modell 3)
 
-...
+```{r}
+#| label: residuals-m3
+#| fig-width: 7
+#| fig-height: 5
+dat_resid <- dat |>
+  mutate(
+    fitted   = fitted(m3),
+    residual = residuals(m3)
+  )
 
-**Interpretation:**
+ggplot(dat_resid, aes(x = fitted, y = residual)) +
+  geom_point(alpha = 0.6, color = "#0072B2") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+  geom_smooth(se = FALSE, color = "red", linewidth = 0.7) +
+  labs(
+    title = "Residualplot — Modell 3 (BIP + Medianalter)",
+    x = "Fitted Values",
+    y = "Residuals"
+  ) +
+  theme_minimal(base_size = 12)
+```
 
-<!-- are residuals randomly scattered? any pattern suggesting model misspecification? -->
+Die rote Smoother-Linie zeigt ein leichtes S-förmiges Muster — die Residuen 
+sind nicht perfekt zufällig um die Nulllinie verteilt. Das deutet darauf hin 
+dass die lineare Spezifikation die Beziehung nicht vollständig erfasst: 
+bei niedrigen und hohen Fitted Values überschätzt das Modell tendenziell, 
+im mittleren Bereich unterschätzt es. Eine nicht-lineare Erweiterung 
+(z.B. quadratischer Term) könnte den Fit weiter verbessern — das geht aber 
+über den Scope dieses Reports hinaus. Zusätzlich sind einige starke Ausreißer 
+sichtbar (Residuen > 4.000 bzw. < -4.000) die auf Länder hinweisen deren 
+Übersterblichkeit durch BIP und Medianalter allein nicht erklärt werden kann.
+
+Die Residualdiagnostik zeigt allerdings dass die lineare Spezifikation 
+die Realität nicht vollständig abbildet — ein leichtes nicht-lineares 
+Muster bleibt ungeklärt, und einige Länder weichen stark vom Modell ab. 
+Die Ergebnisse sind daher als robuste Tendenz zu interpretieren, 
+nicht als präzise Vorhersage. Für eine vollständigere Erklärung der 
+Übersterblichkeit wären zusätzliche Variablen notwendig — 
+Gesundheitssystemkapazität, Impfquoten, politische Reaktionen — 
+die in diesem Datensatz nicht oder nur unvollständig verfügbar sind.
 
 \newpage
 
 ## Kontinente-Übersicht
 
-...
+```{r}
+#| label: continent-summary
+dat |>
+  group_by(continent) |>
+  summarise(
+    n                = n(),
+    mean_excess      = round(mean(excess_mort), 0),
+    median_excess    = round(median(excess_mort), 0),
+    mean_gdp         = round(mean(gdp_per_capita), 0),
+    mean_median_age  = round(mean(median_age), 1),
+    .groups = "drop"
+  ) |>
+  arrange(desc(mean_excess)) |>
+  kable(caption = "Übersterblichkeit und strukturelle Variablen nach Kontinent",
+        col.names = c("Kontinent", "n", "Ø Übersterblichkeit",
+                      "Median Übersterblichkeit", "Ø BIP pro Kopf", 
+                      "Ø Medianalter"))
+```
 
-## Schlussfolgerung
+Südamerika und Europa führen bei der Übersterblichkeit — aber aus 
+sehr unterschiedlichen Gründen. Europa hat das höchste Medianalter 
+(41.6 Jahre) und das höchste BIP (43.138$), trotzdem die zweithöchste 
+Übersterblichkeit. Das illustriert den Masking-Effekt direkt: hohes BIP 
+allein reicht nicht wenn die Bevölkerung alt und damit vulnerabel ist.
 
-...
+Südamerika hingegen kombiniert niedrigeres BIP (16.391$) mit einer 
+relativ jungen Bevölkerung (30.3 Jahre) — und trotzdem die höchste 
+Übersterblichkeit im Schnitt. Das deutet auf weitere Faktoren hin: 
+schwächere Gesundheitssysteme, Ungleichheit, informelle Sektoren die 
+Lockdowns unmöglich machen.
 
-## Limtation
+Ozeanien zeigt mit Abstand die niedrigste Übersterblichkeit (1.086) — 
+geografische Isolation und strikte Grenzpolitik (Australien, Neuseeland) 
+dürften hier eine größere Rolle spielen als BIP oder Alter. Ein schönes 
+Beispiel dafür dass strukturelle Variablen allein nicht alles erklären.
 
-- Die Stichprobe von 110 Ländern ist nicht global repräsentativ -> Länder mit vollständigen Daten tendieren zu höherem Einkommensniveau, Afrika bspw. ist unterrepräsentiert.
-- BIP pro Kopf ist ein Durchschnittswert und bildet innerstaatliche Ungleichheit nicht ab.
-- Übersterblichkeit hängt von der Qualität der Meldesysteme ab -> auch hier Bias zugunsten reicherer Länder.
-- Kausalaussagen sind auf Basis von Querschnittsdaten nicht möglich.
+Afrika ist mit n = 8 stark unterrepräsentiert — die Zahlen sind daher 
+mit Vorsicht zu interpretieren. Das liegt weniger an schlechten 
+Meldesystemen per se, sondern daran dass überhaupt nur Länder mit 
+ausreichend vollständigen Daten im Datensatz landen. Das ist ein 
+klassischer Western Bias: wer gute Daten hat, wird gemessen — 
+wer keine hat, existiert in der Analyse schlicht nicht. 
+Die "niedrige" afrikanische Übersterblichkeit in unseren Daten 
+sagt also wenig über die tatsächliche Realität aus.
+
+## Limitationen
+
+- Die Stichprobe von 110 Ländern ist nicht global repräsentativ — Länder 
+  mit vollständigen Daten tendieren zu höherem Einkommensniveau, Afrika 
+  ist stark unterrepräsentiert (Western Bias).
+- BIP pro Kopf ist ein Durchschnittswert und bildet innerstaatliche 
+  Ungleichheit nicht ab — ein reiches Land mit extremer Ungleichheit 
+  (z.B. USA, Brasilien) wird gleich behandelt wie eines mit gleichmäßiger 
+  Verteilung.
+- Übersterblichkeit basiert auf einer 2015–2019 Baseline — Länder mit 
+  ungewöhnlichen Sterblichkeitsmustern in diesem Zeitraum (Kriege, 
+  Naturkatastrophen) haben verzerrte Ausgangswerte.
+- Kausalaussagen sind auf Basis von Querschnittsdaten nicht möglich — 
+  wir zeigen Assoziationen, keine Kausalität.
+- Das Modell erklärt maximal 30% der Varianz — 70% bleiben ungeklärt. 
+  Relevante Variablen wie Impfquoten, Gesundheitssystemkapazität, 
+  politische Maßnahmen oder Bevölkerungsdichte wurden bewusst ausgelassen aufgrund des scopes.
+- Medianalter und BIP sind zeitlich stabil — sie erfassen keine 
+  Veränderungen während der Pandemie selbst (z.B. wirtschaftlicher 
+  Einbruch 2020).
 
 ## Literature
 
-<!-- (will be only a few really. Doesnt matter anyway.) -->
+Neuwirth & Elixhauser — direkte theoretische Grundlage für den Masking-Effekt (BIP wirkt in beide Richtungen)
+Karlinsky & Kobak — Datenquelle für Übersterblichkeit
+COVID-19 Forecasting Team / Lancet — Begründung warum Alter ein zentraler Prädiktor ist
+WHO 2023 — Begründung für den Cutoff 2023-05-05
+HMD, World Bank, UN WPP — Datenquellen
+
+
+\newpage
+
+## Visualisierungen
+
+```{r}
+#| label: plot-gdp
+#| fig-width: 7
+#| fig-height: 5
+ggplot(dat, aes(x = gdp_per_capita, y = excess_mort)) +
+  geom_point(alpha = 0.7, size = 2.5, color = "#009E73") +
+  geom_smooth(method = "lm", se = TRUE, color = "grey30", linewidth = 0.8) +
+  scale_x_log10(labels = scales::comma) +
+  labs(
+    title = "BIP pro Kopf vs. Übersterblichkeit",
+    subtitle = "Log-Skala — 110 Länder",
+    x = "BIP pro Kopf, PPP (Log-Skala)",
+    y = "Kum. Übersterblichkeit pro Million",
+    caption = "Quelle: OWID / World Bank / HMD / WMD"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+```{r}
+#| label: plot-age
+#| fig-width: 7
+#| fig-height: 5
+ggplot(dat, aes(x = median_age, y = excess_mort)) +
+  geom_point(alpha = 0.7, size = 2.5, color = "#E69F00") +
+  geom_smooth(method = "lm", se = TRUE, 
+              color = "grey30", fill = "grey80", linewidth = 0.8) +
+  labs(
+    title = "Medianalter vs. Übersterblichkeit",
+    subtitle = "110 Länder",
+    x = "Medianalter (Jahre)",
+    y = "Kum. Übersterblichkeit pro Million",
+    caption = "Quelle: OWID / UN WPP / HMD / WMD"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+```{r}
+#| label: plot-subgroup
+#| fig-width: 7
+#| fig-height: 5
+ggplot(dat_split, aes(x = gdp_per_capita, y = excess_mort, color = age_group)) +
+  geom_point(alpha = 0.7, size = 2.5) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.9) +
+  geom_vline(xintercept = median(dat$gdp_per_capita), 
+             linetype = "dotted", color = "grey40") +
+  annotate("text", 
+           x = median(dat$gdp_per_capita) * 1.15, 
+           y = 9500, 
+           label = paste0("Median BIP\n($", 
+                          round(median(dat$gdp_per_capita) / 1000, 0), 
+                          "k)"),
+           size = 3, color = "grey40", hjust = 0) +
+  scale_x_log10(labels = scales::comma) +
+  scale_color_manual(values = c("Ältere Bevölkerung" = "#D55E00", 
+                                 "Jüngere Bevölkerung" = "#009E73")) +
+  labs(
+    title = "BIP vs. Übersterblichkeit — nach Altersgruppe",
+    subtitle = "Mediansplit bei 35.9 Jahren — jüngere vs. ältere Bevölkerungen",
+    x = "BIP pro Kopf, PPP (Log-Skala)",
+    y = "Kum. Übersterblichkeit pro Million",
+    color = "Altersgruppe",
+    caption = "Quelle: OWID / World Bank / HMD / WMD"
+  ) +
+  theme_minimal(base_size = 12)
+```
