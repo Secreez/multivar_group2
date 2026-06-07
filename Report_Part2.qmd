@@ -207,6 +207,14 @@ korrelieren (r = 0.50) — das Alter hat den negativen BIP-Effekt auf
 tatsächlich niedrigere Übersterblichkeit — aber dieser Zusammenhang wird
 erst sichtbar wenn man das Medianalter kontrolliert.
 
+Der Koeffizient war in M1 nicht erkennbar weil BIP und Alter so stark
+korrelieren (r = 0.50) — das Alter hat den negativen BIP-Effekt auf
+Übersterblichkeit statistisch maskiert. Länder mit höherem BIP zeigten
+tatsächlich niedrigere Übersterblichkeit — aber dieser Zusammenhang wird
+erst sichtbar wenn man das Medianalter kontrolliert, konsistent mit den
+Befunden von Ioannidis et al. (2023) die für wohlhabende Länder ebenfalls
+eine inverse Assoziation zwischen GDP und Übersterblichkeit beobachteten.
+
 \newpage
 
 ### Modell 4: Mit Interaktionsterm — ist der BIP-Effekt in jungen und alten Ländern gleich stark?
@@ -238,8 +246,14 @@ negative Zusammenhang zwischen BIP und Übersterblichkeit schwächer — die
 Daten legen nahe dass COVID dort weniger stark mit dem Wohlstandsniveau
 zusammenhing. In Ländern mit älterer Bevölkerung hingegen ist die negative
 Assoziation zwischen BIP und Übersterblichkeit deutlich stärker ausgeprägt.
-Ob das kausal zu interpretieren ist — also ob Reichtum tatsächlich Leben
+
+In Ländern mit älterer Bevölkerung hingegen ist die negative Assoziation
+zwischen BIP und Übersterblichkeit deutlich stärker ausgeprägt — ein Muster
+das Pizzato et al. (2024) für den europäischen Raum in ähnlicher Form
+beobachteten. Ob das kausal zu interpretieren ist — also ob Reichtum tatsächlich Leben
 gerettet hat — lässt sich aus Querschnittsdaten nicht schlussfolgern.
+
+
 
 Das ist die quantitative Antwort auf die Frage aus unserer Präsi:
 
@@ -480,34 +494,36 @@ aber dieser Zusammenhang wird erst sichtbar wenn man berücksichtigt
 
 ## Literatur
 
-Ioannidis, J.P.A.; Zonta, F.; Levitt, M. (2023). Variability in excess deaths
-across countries with different vulnerability during 2020–2023.
-*Proceedings of the National Academy of Sciences*, 120(49), e2309557120.
-https://doi.org/10.1073/pnas.2309557120
+J.P.A. Ioannidis, F. Zonta, & M. Levitt, Variability in excess deaths 
+across countries with different vulnerability during 2020–2023, 
+Proc. Natl. Acad. Sci. U.S.A. 120 (49) e2309557120, 
+https://doi.org/10.1073/pnas.2309557120 (2023).
 
-Pizzato, M.; Gerli, A.G.; La Vecchia, C.; Alicandro, G. (2024). Impact of
-COVID-19 on total excess mortality and geographic disparities in Europe,
-2020–2023: a spatio-temporal analysis. *Lancet Regional Health — Europe*,
-44, 100996. https://doi.org/10.1016/j.lanepe.2024.100996
+Pizzato M, Gerli A, La Vecchia C et al.
+Impact of COVID-19 on total excess mortality and geographic 
+disparities in Europe, 2020–2023: a spatio-temporal analysis
+The Lancet Regional Health – Europe, 2024; 44
+DOI: 10.1016/j.lanepe.2024.100996
+https://doi.org/10.1016/j.lanepe.2024.100996
 
-Karlinsky, A.; Kobak, D. (2021). Tracking excess mortality across countries
-during the COVID-19 pandemic with the World Mortality Dataset. *eLife*, 10,
-e69336. https://doi.org/10.7554/eLife.69336
+Ariel Karlinsky, Dmitry Kobak (2021) Tracking excess mortality across 
+countries during the COVID-19 pandemic with the World Mortality Dataset 
+eLife 10:e69336 https://doi.org/10.7554/eLife.69336
 
-COVID-19 Forecasting Team (2022). Variation in the COVID-19
-infection-fatality ratio by age, time, and geography during the pre-vaccine
-era: a systematic analysis. *The Lancet*, 399(10334), 1469–1488.
+COVID-19 Forecasting Team (2022). Variation in the COVID-19 
+infection–fatality ratio by age, time, and geography during the 
+pre-vaccine era: a systematic analysis. *The Lancet*, 399, 1469–1488.
 https://doi.org/10.1016/S0140-6736(21)02867-1
 
 World Health Organization (2023). Statement on the fifteenth meeting of the
 IHR (2005) Emergency Committee on the COVID-19 pandemic.
-https://www.who.int/news/item/05-05-2023
+https://www.who.int/news/item/05-05-2023-statement-on-the-fifteenth-meeting-of-the-international-health-regulations-(2005)-emergency-committee-regarding-the-coronavirus-disease-(covid-19)-pandemic
 
 Human Mortality Database (2024). Max Planck Institute for Demographic
 Research, University of California Berkeley, and French Institute for
 Demographic Studies. www.mortality.org
 
-World Bank (2024). World Development Indicators.
+World Bank (2024). World Development Indicators. \newline
 https://datacatalog.worldbank.org/search/dataset/0037712
 
 United Nations, Department of Economic and Social Affairs (2024).
