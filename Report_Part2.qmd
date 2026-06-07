@@ -537,7 +537,7 @@ World Population Prospects 2024. https://population.un.org/wpp/
 #| label: plot-gdp
 #| fig-width: 7
 #| fig-height: 5
-ggplot(dat, aes(x = gdp_per_capita, y = excess_mort)) +
+p_gdp <- ggplot(dat, aes(x = gdp_per_capita, y = excess_mort)) +
   geom_point(alpha = 0.7, size = 2.5, color = "#009E73") +
   geom_smooth(method = "lm", se = TRUE, color = "grey30", linewidth = 0.8) +
   scale_x_log10(labels = scales::comma) +
@@ -549,13 +549,16 @@ ggplot(dat, aes(x = gdp_per_capita, y = excess_mort)) +
     caption = "Quelle: OWID / World Bank / HMD / WMD"
   ) +
   theme_minimal(base_size = 12)
+
+p_gdp
+ggsave("output/plot_gdp_excess.png", p_gdp, width = 7, height = 5, dpi = 300)
 ```
 
 ```{r}
 #| label: plot-age
 #| fig-width: 7
 #| fig-height: 5
-ggplot(dat, aes(x = median_age, y = excess_mort)) +
+p_age <- ggplot(dat, aes(x = median_age, y = excess_mort)) +
   geom_point(alpha = 0.7, size = 2.5, color = "#E69F00") +
   geom_smooth(method = "lm", se = TRUE,
               color = "grey30", fill = "grey80", linewidth = 0.8) +
@@ -567,13 +570,16 @@ ggplot(dat, aes(x = median_age, y = excess_mort)) +
     caption = "Quelle: OWID / UN WPP / HMD / WMD"
   ) +
   theme_minimal(base_size = 12)
+
+p_age
+ggsave("output/plot_age_excess.png", p_age, width = 7, height = 5, dpi = 300)
 ```
 
 ```{r}
 #| label: plot-subgroup
 #| fig-width: 7
 #| fig-height: 5
-ggplot(dat_split, aes(x = gdp_per_capita, y = excess_mort, color = age_group)) +
+p_sub <- ggplot(dat_split, aes(x = gdp_per_capita, y = excess_mort, color = age_group)) +
   geom_point(alpha = 0.7, size = 2.5) +
   geom_smooth(method = "lm", se = FALSE, linewidth = 0.9) +
   geom_vline(xintercept = median(dat$gdp_per_capita),
@@ -597,4 +603,7 @@ ggplot(dat_split, aes(x = gdp_per_capita, y = excess_mort, color = age_group)) +
     caption = "Quelle: OWID / World Bank / HMD / WMD"
   ) +
   theme_minimal(base_size = 12)
+
+p_sub
+ggsave("output/plot_subgroup.png", p_sub, width = 7, height = 5, dpi = 300)
 ```
